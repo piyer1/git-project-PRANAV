@@ -1,4 +1,5 @@
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,18 +37,27 @@ public class Git{
     //filePath - path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
     public Blob (String filePath){
-        File blob = new File(filePath);
+        File file = new File(filePath);
         //checks if blob exits
-        if (!blob.exists()) throw new NoSuchFileException();
+        if (!file.exists()) throw new NoSuchFileException();
         
         //add compression implementation here
         
-        int hashCode = Sha1Hash(filePath);
-        FileInputStream reader = new FileInputStream(blob);
-        BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
-        while (reader.ready())
-            writer.write(reader.read());
-        reader.close();
+        String hashCode = Sha1Hash(filePath);
+        //write to objects directory
+        FileInputStream input = new FileInputStream(file);
+        BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
+        int data = input.read();
+        while (data != -1){
+            output.write(data);
+            data = input.read();
+        }
+        input.close();
+        output.close();
+        //write to index
+        BufferedWriter writer = new BufferedWriter("git/index");
+        writer.newLine();
+        writer.write(file.getName() + " " + hashCode);
         writer.close();
     }
 
