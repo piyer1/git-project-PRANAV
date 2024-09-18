@@ -52,4 +52,14 @@ public class Git{
         return 0;
     }
 
+    public void deleteRepository (){
+        File git = new File("git/");
+        if (git.exists())
+            git.delete();
+        
+        if (git.exists())
+            System.out.println ("Deletion Successful");
+        else
+            System.out.println ("Deletion Failed");
+    }
 }
