@@ -13,6 +13,10 @@ import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
 
 public class Git{
+    //if compressFiles is true, git will zip files before caching them
+    private boolean compressFiles = true;
+    
+    //constructs a new repository
     public Git (){
         File git = new File("git/");
         File objects = new File("git/objects/");
@@ -36,14 +40,14 @@ public class Git{
         }
     }
 
-    //filePath - path of blob to be hashed
+    //string filePath is path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
     public void Blob (String filePath){
         File file = new File(filePath);
         //checks if blob exits
-        // if (!file.exists()) 
-        //     throw new FileNotFoundException(filePath);
-        //add compression implementation here
+        if (!file.exists())
+            throw new NullPointerException();
+            //im not sure that NullPointer is the right exception so feel free to swap it
         
         String hashCode = Sha1Hash(filePath);
         //write to objects directory
@@ -73,6 +77,7 @@ public class Git{
         }
     }
 
+    //returns hexadecimal SHA-1 hash for the file at filePath
     public String Sha1Hash (String filePath){
         //implementation is copied from geeksforgeeks
         //https://www.geeksforgeeks.org/sha-1-hash-in-java/
@@ -89,6 +94,7 @@ public class Git{
         return null;
     }
 
+    //removes git folder
     public void deleteRepository (){
         File git = new File("git/");
         if (git.exists()){
@@ -102,6 +108,7 @@ public class Git{
             System.out.println ("Deletion Failed");
     }
 
+    //recursively clears and deletes all files/directories in directory
     public void removeDirectory (File directory){
         if (!directory.isDirectory())
             throw new IllegalArgumentException();
