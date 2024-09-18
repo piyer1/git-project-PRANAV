@@ -2,8 +2,10 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -36,29 +38,39 @@ public class Git{
 
     //filePath - path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
-    public Blob (String filePath){
+    public void Blob (String filePath){
         File file = new File(filePath);
         //checks if blob exits
-        if (!file.exists()) throw new NoSuchFileException();
-        
+        // if (!file.exists()) 
+        //     throw new FileNotFoundException(filePath);
         //add compression implementation here
         
         String hashCode = Sha1Hash(filePath);
         //write to objects directory
-        FileInputStream input = new FileInputStream(file);
-        BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
-        int data = input.read();
-        while (data != -1){
-            output.write(data);
-            data = input.read();
+        try {
+            FileInputStream input = new FileInputStream(file);
+            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
+            int data = input.read();
+            while (data != -1){
+                output.write(data);
+                data = input.read();
+            }
+            input.close();
+            output.close();
         }
-        input.close();
-        output.close();
-        //write to index
-        BufferedWriter writer = new BufferedWriter("git/index");
-        writer.newLine();
-        writer.write(file.getName() + " " + hashCode);
-        writer.close();
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        // write to index
+        try{
+            BufferedWriter writer = new BufferedWriter(new FileWriter("git/index", true));
+            writer.write(file.getName() + " " + hashCode);
+            writer.newLine();
+            writer.close();
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public String Sha1Hash (String filePath){
