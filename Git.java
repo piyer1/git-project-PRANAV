@@ -4,7 +4,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.NoSuchFileException;
+import java.security.MessageDigest;
 
 public class Git{
     public Git (){
@@ -48,8 +50,20 @@ public class Git{
         writer.close();
     }
 
-    public int Sha1Hash (String filePath){
-        return 0;
+    public String Sha1Hash (String filePath){
+        //implementation is copied from geeksforgeeks
+        //https://www.geeksforgeeks.org/sha-1-hash-in-java/
+        try {
+            MessageDigest digester = MessageDigest.getInstance("SHA-1");
+            byte[] sha1bytes = digester.digest(new File(filePath).getBytes());
+            BigInteger sha1data = new BigInteger(1, sha1bytes);
+            String hash = sha1data.toString(16);
+            return hash;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void deleteRepository (){
