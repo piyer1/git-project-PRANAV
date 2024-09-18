@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
 
@@ -55,7 +56,7 @@ public class Git{
         //https://www.geeksforgeeks.org/sha-1-hash-in-java/
         try {
             MessageDigest digester = MessageDigest.getInstance("SHA-1");
-            byte[] sha1bytes = digester.digest(new File(filePath).getBytes());
+            byte[] sha1bytes = digester.digest(Files.readAllBytes(new File(filePath).toPath()));
             BigInteger sha1data = new BigInteger(1, sha1bytes);
             String hash = sha1data.toString(16);
             return hash;
