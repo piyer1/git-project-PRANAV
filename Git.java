@@ -54,12 +54,25 @@ public class Git{
 
     public void deleteRepository (){
         File git = new File("git/");
-        if (git.exists())
+        if (git.exists()){
+            removeDirectory(git);
             git.delete();
+        }
         
-        if (git.exists())
+        if (!git.exists())
             System.out.println ("Deletion Successful");
         else
             System.out.println ("Deletion Failed");
+    }
+
+    public void removeDirectory (File directory){
+        if (!directory.isDirectory())
+            throw new IllegalArgumentException();
+        
+        for (File childFile : directory.listFiles()){
+            if (childFile.isDirectory())
+                removeDirectory(childFile);
+            childFile.delete();
+        }
     }
 }
