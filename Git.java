@@ -1,5 +1,10 @@
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 
 public class Git{
     public Git (){
@@ -22,10 +27,29 @@ public class Git{
                     e.printStackTrace();
                 }
             }
-        }    
+        }
     }
 
-    public static void main (String [] args){
-        Git repo = new Git();
+    //filePath - path of blob to be hashed
+    //returns true if blob hashes, returns false otherwise
+    public Blob (String filePath){
+        File blob = new File(filePath);
+        //checks if blob exits
+        if (!blob.exists()) throw new NoSuchFileException();
+        
+        //add compression implementation here
+        
+        int hashCode = Sha1Hash(filePath);
+        FileInputStream reader = new FileInputStream(blob);
+        BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
+        while (reader.ready())
+            writer.write(reader.read());
+        reader.close();
+        writer.close();
     }
+
+    public int Sha1Hash (String filePath){
+        return 0;
+    }
+
 }
