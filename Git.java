@@ -18,7 +18,7 @@ import java.util.zip.DeflaterOutputStream;
 
 public class Git{
     //if compressFiles is true, git will zip files before caching them
-    private boolean compressFiles = true;
+    public static boolean compressFiles = true;
     
     //constructs a new repository
     public Git (){
@@ -59,21 +59,26 @@ public class Git{
             file = compress(file);
         
         String hashCode = Sha1Hash(file);
-        //write to objects directory
-        try {
-            FileInputStream input = new FileInputStream(file);
-            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("./git/objects/" + hashCode));
-            int data = input.read();
-            while (data != -1){
-                output.write(data);
-                data = input.read();
+        //checks if file is already stored
+        File storedFile = new File("./git/objects/" + hashCode);
+        if (!storedFile.exists()){
+            try {
+                //write to objects directory
+                FileInputStream input = new FileInputStream(file);
+                BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(storedFile));
+                int data = input.read();
+                while (data != -1){
+                    output.write(data);
+                    data = input.read();
+                }
+                input.close();
+                output.close();
             }
-            input.close();
-            output.close();
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+        
         // write to index
         try{
             //Checks if filename and hash is already in index
