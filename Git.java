@@ -1,4 +1,5 @@
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +12,9 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterInputStream;
+import java.util.zip.DeflaterOutputStream;
 
 public class Git{
     //if compressFiles is true, git will zip files before caching them
@@ -18,9 +22,9 @@ public class Git{
     
     //constructs a new repository
     public Git (){
-        File git = new File("git/");
-        File objects = new File("git/objects/");
-        File index = new File ("git/index");
+        File git = new File("./git/");
+        File objects = new File("./git/objects/");
+        File index = new File ("./git/index");
         //Checks if repository currently exists
         if (git.exists() && objects.exists() && index.exists())
             System.out.println ("Git Repository already exists");
@@ -42,18 +46,23 @@ public class Git{
 
     //string filePath is path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
-    public void Blob (String filePath){
+    public void HashData (String filePath){
         File file = new File(filePath);
+        String filename = file.getName();
         //checks if blob exits
         if (!file.exists())
             throw new NullPointerException();
             //im not sure that NullPointer is the right exception so feel free to swap it
         
-        String hashCode = Sha1Hash(filePath);
+        //compresses the file
+        if (compressFiles)
+            file = compress(file);
+        
+        String hashCode = Sha1Hash(file);
         //write to objects directory
         try {
             FileInputStream input = new FileInputStream(file);
-            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("git/objects/" + hashCode));
+            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream("./git/objects/" + hashCode));
             int data = input.read();
             while (data != -1){
                 output.write(data);
@@ -67,23 +76,35 @@ public class Git{
         }
         // write to index
         try{
-            BufferedWriter writer = new BufferedWriter(new FileWriter("git/index", true));
-            writer.write(file.getName() + " " + hashCode);
-            writer.newLine();
-            writer.close();
+            //Checks if filename and hash is already in index
+            boolean isInIndex = false;
+            String index = (hashCode + " " + filename);
+            BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
+            while (reader.ready()){
+                //System.out.println (reader.readLine());
+                // if (index == reader.readLine())
+                //     isInIndex = true;
+            }
+            reader.close();
+            if (!isInIndex){
+                BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true));
+                writer.write(index);
+                writer.newLine();
+                writer.close();
+            }
         }
         catch (IOException e){
             e.printStackTrace();
         }
     }
 
-    //returns hexadecimal SHA-1 hash for the file at filePath
-    public String Sha1Hash (String filePath){
+    //returns hexadecimal SHA-1 hash for file
+    public String Sha1Hash (File file){
         //implementation is copied from geeksforgeeks
         //https://www.geeksforgeeks.org/sha-1-hash-in-java/
         try {
             MessageDigest digester = MessageDigest.getInstance("SHA-1");
-            byte[] sha1bytes = digester.digest(Files.readAllBytes(new File(filePath).toPath()));
+            byte[] sha1bytes = digester.digest(Files.readAllBytes(file.toPath()));
             BigInteger sha1data = new BigInteger(1, sha1bytes);
             String hash = sha1data.toString(16);
             return hash;
@@ -92,6 +113,28 @@ public class Git{
             e.printStackTrace();
         }
         return null;
+    }
+
+    //Compresses file
+    //If compression fails it will return input file
+    public File compress (File file){
+        try {
+            File compressedFile = File.createTempFile("compress", null);
+            FileInputStream input = new FileInputStream(file);
+            DeflaterOutputStream output = new DeflaterOutputStream(new FileOutputStream(compressedFile));
+            int data = input.read();
+            while (data != -1){
+                output.write(data);
+                data = input.read();
+            }
+            input.close();
+            output.close();
+            return compressedFile;
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+        return file;
     }
 
     //removes git folder
