@@ -81,9 +81,8 @@ public class Git{
             String index = (hashCode + " " + filename);
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
-                //System.out.println (reader.readLine());
-                // if (index == reader.readLine())
-                //     isInIndex = true;
+                if (index.equals(reader.readLine()))
+                    isInIndex = true;
             }
             reader.close();
             if (!isInIndex){
