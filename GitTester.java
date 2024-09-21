@@ -69,7 +69,7 @@ public class GitTester {
             System.out.println ("WARNING: Blob object creation unsuccessful");
 
         //leave true if you want repository to reset at end of test
-        if (true){
+        if (false){
             repo.deleteRepository();
         }
     }
