@@ -155,11 +155,6 @@ public class Git{
             removeDirectory(git);
             git.delete();
         }
-        
-        if (!git.exists())
-            System.out.println ("Deletion Successful");
-        else
-            System.out.println ("Deletion Failed");
     }
 
     //recursively clears and deletes all files/directories in directory
