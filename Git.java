@@ -18,10 +18,14 @@ import java.util.zip.DeflaterOutputStream;
 
 public class Git{
     //if compressFiles is true, git will zip files before caching them
-    public static boolean compressFiles = true;
+    public static final boolean COMPRESS_FILES = false;
     
-    //constructs a new repository
     public Git (){
+        initializeRepository();
+    }
+
+    //constructs a new repository
+    public void initializeRepository (){
         File git = new File("./git/");
         File objects = new File("./git/objects/");
         File index = new File ("./git/index");
@@ -55,7 +59,7 @@ public class Git{
             //im not sure that NullPointer is the right exception so feel free to swap it
         
         //compresses the file
-        if (compressFiles)
+        if (COMPRESS_FILES)
             file = compress(file);
         
         String hashCode = Sha1Hash(file);
@@ -78,7 +82,7 @@ public class Git{
                 e.printStackTrace();
             }
         }
-        
+
         // write to index
         try{
             //Checks if filename and hash is already in index
@@ -111,6 +115,9 @@ public class Git{
             byte[] sha1bytes = digester.digest(Files.readAllBytes(file.toPath()));
             BigInteger sha1data = new BigInteger(1, sha1bytes);
             String hash = sha1data.toString(16);
+            while (hash.length() < 40) {
+                hash = "0" + hash;
+            }
             return hash;
         }
         catch (Exception e){
