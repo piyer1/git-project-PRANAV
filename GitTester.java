@@ -38,7 +38,7 @@ public class GitTester {
         boolean isInIndex = false;
         String hashCode;
         //finds compressed hashcode if nessesary
-        if (repo.COMPRESS_FILES)
+        if (Git.COMPRESS_FILES)
             hashCode = repo.Sha1Hash(repo.compress(test));
         else
             hashCode = repo.Sha1Hash(test);
