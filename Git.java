@@ -44,11 +44,22 @@ public class Git{
         }
     }
 
-    //string filePath is path of blob to be hashed
-    //returns true if blob hashes, returns false otherwise
-    public void HashData (String filePath){
+    //string filePath is part of blob to be hashed
+    //Uses HashFile for files
+    public void createBlobGeneral(String filePath){
         File file = new File(filePath);
         String filename = file.getName();
+        if (file.isFile()){
+            HashFile(file, filename);
+        }
+        else{
+
+        }
+    }
+
+    //string filePath is path of blob to be hashed
+    //returns true if blob hashes, returns false otherwise
+    public void HashFile (File file, String filename){
         //checks if blob exits
         if (!file.exists())
             throw new NullPointerException();
@@ -83,7 +94,7 @@ public class Git{
         try{
             //Checks if filename and hash is already in index
             boolean isInIndex = false;
-            String index = (hashCode + " " + filename);
+            String index = ("blob" + hashCode + " " + filename);
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
                 if (index.equals(reader.readLine()))

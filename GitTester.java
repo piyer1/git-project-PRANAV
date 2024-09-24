@@ -34,7 +34,7 @@ public class GitTester {
             System.out.println ("WARNING: Sha1Hash method not functioning properly (or you changed testData.txt)");
 
         //check Hashing
-        repo.HashData("testData.txt");
+        repo.createBlobGeneral("testData.txt");
         boolean isInIndex = false;
         String hashCode;
         //finds compressed hashcode if nessesary
