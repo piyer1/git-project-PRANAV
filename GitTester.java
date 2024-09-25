@@ -1,14 +1,13 @@
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.BufferedReader;
+import java.io.*;
 
 
 public class GitTester {
-    public static void main (String [] args){
+    public static void main (String [] args) throws IOException{
         //initialize repository
         Git repo = new Git();
-        File test = new File("testData.txt");
+        File test = new File("./test/");
 
         //check repository initialization
         File git = new File ("./git/");
@@ -28,13 +27,13 @@ public class GitTester {
             System.out.println ("WARNING: index creation failure");
         
         //check Sha1Hash
-        if (repo.Sha1Hash(test).equals("d720c05e3787a35beeb764524814e83ed26d0e7d"))
+        if (repo.Sha1Hash(test).equals("9054fbe0b622c638224d50d20824d2ff6782e308"))
             System.out.println ("Sha1Hash functioning properly");
         else
             System.out.println ("WARNING: Sha1Hash method not functioning properly (or you changed testData.txt)");
-
+        
         //check Hashing
-        repo.createBlobGeneral("testData.txt");
+        repo.createBlobGeneral("./test/");
         boolean isInIndex = false;
         String hashCode;
         //finds compressed hashcode if nessesary
@@ -44,7 +43,7 @@ public class GitTester {
             hashCode = repo.Sha1Hash(test);
         
         //checks to see if in index
-        String expectedIndex = (hashCode + " " + test.getName());
+        String expectedIndex = ("tree " + hashCode + " " + test.getName());
         try {
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
@@ -72,5 +71,6 @@ public class GitTester {
         if (false){
             repo.deleteRepository();
         }
+        
     }
 }
