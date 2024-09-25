@@ -49,22 +49,65 @@ public class Git{
     public void createBlobGeneral(String filePath){
         File file = new File(filePath);
         String filename = file.getName();
+        //checks if blob exits
+        if (!file.exists()){
+            throw new NullPointerException();
+            //im not sure that NullPointer is the right exception so feel free to swap it
+        }
         if (file.isFile()){
             HashFile(file, filename);
         }
         else{
-
+            File[] allFiles = file.listFiles();
+            File file_combined = new File("./combined");
+            for (File child : allFiles){
+                try {
+                    //write to objects directory
+                    FileInputStream input = new FileInputStream(child);
+                    BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file_combined));
+                    int data = input.read();
+                    while (data != -1){
+                        output.write(data);
+                        data = input.read();
+                    }
+                    input.close();
+                    output.close();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+            String hashCode = Sha1Hash(file_combined);
+            // write to index
+            try{
+                //Checks if filename and hash is already in index
+                boolean isInIndex = false;
+                String index = ("tree " + hashCode + " " + filename);
+                BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
+                while (reader.ready()){
+                    if (index.equals(reader.readLine()))
+                        isInIndex = true;
+                }
+                reader.close();
+                if (!isInIndex){
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true));
+                    writer.write(index);
+                    writer.newLine();
+                    writer.close();
+                }
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+            for (File child : allFiles){
+                createBlobGeneral(child.getPath());
+            }
         }
     }
 
     //string filePath is path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
     public void HashFile (File file, String filename){
-        //checks if blob exits
-        if (!file.exists())
-            throw new NullPointerException();
-            //im not sure that NullPointer is the right exception so feel free to swap it
-        
         //compresses the file
         if (COMPRESS_FILES)
             file = compress(file);
@@ -94,7 +137,7 @@ public class Git{
         try{
             //Checks if filename and hash is already in index
             boolean isInIndex = false;
-            String index = ("blob" + hashCode + " " + filename);
+            String index = ("blob " + hashCode + " " + filename);
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
                 if (index.equals(reader.readLine()))
