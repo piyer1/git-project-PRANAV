@@ -192,16 +192,18 @@ public class Git{
         else{
             File[] allFiles = file.listFiles();
             File file_combined = new File("./combined" + file.getName());
-            for (File child : allFiles){
-                try {
-                    //write to objects directory
-                    BufferedWriter output = new BufferedWriter(new FileWriter(file_combined));
-                    output.write(child.getName());
-                    output.newLine();
-                    output.close();
-                }
-                catch (Exception e){
-                    e.printStackTrace();
+            if (!allFiles.equals(null)){
+                for (File child : allFiles){
+                    try {
+                        //write to objects directory
+                        BufferedWriter output = new BufferedWriter(new FileWriter(file_combined));
+                        output.write(child.getName());
+                        output.newLine();
+                        output.close();
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }
             }
             String hash = Sha1Hash(file_combined);
