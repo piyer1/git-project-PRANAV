@@ -58,12 +58,15 @@ public class Git{
         if (file.isFile()){
             HashFile(file, filename);
         }
-        else{ 
+        else{
             String hashCode = Sha1Hash(file);
             File file_objects = new File ("./git/objects/" + hashCode);
             FileChannel source = null;
             FileChannel destination = null;
             File[] allFiles = file.listFiles();
+            for (File child : allFiles){
+                createBlobGeneral(child.getPath());
+            }
             File file_combined = new File("./combined" + file.getName());
             for (File child : allFiles){
                 try {
@@ -112,9 +115,6 @@ public class Git{
             }
             catch (IOException e){
                 e.printStackTrace();
-            }
-            for (File child : file.listFiles()){
-                createBlobGeneral(child.getPath());
             }
         }
     }
