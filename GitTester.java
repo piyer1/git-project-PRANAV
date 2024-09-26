@@ -43,7 +43,7 @@ public class GitTester {
             hashCode = repo.Sha1Hash(test);
         
         //checks to see if in index
-        String expectedIndex = ("tree " + hashCode + " " + test.getName());
+        String expectedIndex = ("tree " + hashCode + " " + test.getPath());
         try {
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
