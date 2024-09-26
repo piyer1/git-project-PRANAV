@@ -96,7 +96,7 @@ public class Git{
             try{
                 //Checks if filename and hash is already in index
                 boolean isInIndex = false;
-                String index = ("tree " + hashCode + " " + filename);
+                String index = ("tree " + hashCode + " " + file.getPath());
                 BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
                 while (reader.ready()){
                     if (index.equals(reader.readLine()))
@@ -151,7 +151,7 @@ public class Git{
         try{
             //Checks if filename and hash is already in index
             boolean isInIndex = false;
-            String index = ("blob " + hashCode + " " + filename);
+            String index = ("blob " + hashCode + " " + file.getPath());
             BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
             while (reader.ready()){
                 if (index.equals(reader.readLine()))
