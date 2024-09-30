@@ -16,7 +16,7 @@ import java.nio.channels.*;;
 public class Git{
     //if compressFiles is true, git will zip files before caching them
     public static final boolean COMPRESS_FILES = false;
-    
+    //test commit
     public Git (){
         initializeRepository();
     }
