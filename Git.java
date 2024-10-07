@@ -9,13 +9,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.zip.DeflaterOutputStream;
 import java.nio.channels.*;;
 
 public class Git{
     //if compressFiles is true, git will zip files before caching them
     public static final boolean COMPRESS_FILES = false;
+    
     //test commit
     public Git (){
         initializeRepository();
@@ -26,8 +32,12 @@ public class Git{
         File git = new File("./git/");
         File objects = new File("./git/objects/");
         File index = new File ("./git/index");
+        File head = new File("./git/HEAD");
         //Checks if repository currently exists
-        if (git.exists() && objects.exists() && index.exists())
+        if (head.exists()) {
+            System.out.println("DFCCewvyeryberay");
+        }
+        if (git.exists() && objects.exists() && index.exists() && head.exists())
             System.out.println ("Git Repository already exists");
         else{
             if (!git.exists())
@@ -42,6 +52,15 @@ public class Git{
                     e.printStackTrace();
                 }
             }
+            if (!head.exists()) {
+                try {
+                    head.createNewFile();}
+                catch (IOException e){
+                    System.out.println ("Head creation failed");
+                    e.printStackTrace();
+                }
+            }
+            
         }
     }
 
@@ -254,5 +273,82 @@ public class Git{
                 removeDirectory(childFile);
             childFile.delete();
         }
+    }   
+
+
+    public String makeCommit(String author, String message) throws IOException, NoSuchAlgorithmException {
+        //Gets the line from the head file
+        String parent;
+        try {
+            parent = Files.readAllLines(Paths.get("./git/HEAD")).get(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Commit failed: HEAD file issue");
+            return null;
+        }
+        //creates the fileTree
+        List<String> fileTree = new ArrayList<String>();
+        try {
+            if (!(parent=="") && !parent.isEmpty()) {
+                File recentCommit = new File("./git/objects/" + parent);
+                fileTree.addAll(0, Files.readAllLines(Paths.get("./git/objects/" + parent)));
+            }
+            fileTree.addAll(0, Files.readAllLines(Paths.get("./git/index")));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Commit failed: index file issue");
+            return null;
+        }
+        //writes the contents of fileTree to the root tree file and gets its hash
+        File rootTree = new File("./git");
+        BufferedWriter output = new BufferedWriter(new FileWriter(rootTree));
+        for (String line : fileTree) {
+            output.write(line);
+        }
+        output.close();
+        String rootTreeHash = Sha1Hash(rootTree);
+        //Adds the whole file tree for this commit to the objects folder
+        File bigTreeFile = new File(".git/objects/" + rootTreeHash);
+        try {
+            bigTreeFile.createNewFile();}
+        catch (IOException e){
+            System.out.println ("bigTreeFile creation failed");
+            e.printStackTrace();
+        }
+        //Creates the actual commit file
+        Date date = new Date();
+        StringBuilder commitText = new StringBuilder("");
+        commitText.append("parent: " + parent + "\n");
+        commitText.append("tree: " + rootTreeHash + "\n");
+        commitText.append("author: " +  author + "\n");
+        commitText.append("date: " + date);
+        commitText.append("message: " + message + "\n");
+        MessageDigest digester = MessageDigest.getInstance("SHA-1");
+        byte[] sha1bytes = digester.digest(commitText.toString().getBytes());
+        BigInteger sha1data = new BigInteger(1, sha1bytes);
+        String hash = sha1data.toString(16);
+                while (hash.length() < 40) {
+                    hash = "0" + hash;
+                }
+        File commitFile = new File(".git/objects/" + hash);
+        BufferedWriter commitWriter = new BufferedWriter(new FileWriter(commitFile));
+        commitWriter.write(commitText.toString());
+        commitWriter.close();
+        try {
+            commitFile.createNewFile();}
+        catch (IOException e){
+            System.out.println ("commitFile creation failed");
+            e.printStackTrace();
+        }
+        //clears index file and update HEAD file
+        Files.deleteIfExists(Paths.get("./git/index"));
+        Files.deleteIfExists(Paths.get("./git/HEAD"));
+        File newIndexFile = new File(".git/index");
+        File newHeadFile = new File(".git/HEAD");
+        BufferedWriter headWriter = new BufferedWriter(new FileWriter(commitFile));
+        headWriter.write(hash);
+        headWriter.close();
+        newIndexFile.createNewFile();
+        newHeadFile.createNewFile();
     }
 }

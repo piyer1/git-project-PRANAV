@@ -13,6 +13,7 @@ public class GitTester {
         File git = new File ("./git/");
         File objects = new File ("./git/objects/");
         File index = new File ("./git/index");
+        File head = new File ("./git/HEAD");
         if (git.exists())
             System.out.println ("/git directory creation success");
         else
@@ -25,6 +26,10 @@ public class GitTester {
             System.out.println ("/index  creation success");
         else
             System.out.println ("WARNING: index creation failure");
+        if (head.exists())
+            System.out.println ("/head  creation success");
+        else
+            System.out.println ("WARNING: head creation failure");
         
         //check Sha1Hash
         if (repo.Sha1Hash(test).equals("9054fbe0b622c638224d50d20824d2ff6782e308"))
