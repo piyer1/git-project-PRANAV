@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.io.*;
 
 
@@ -38,7 +39,7 @@ public class GitTester {
             System.out.println ("WARNING: Sha1Hash method not functioning properly (or you changed testData.txt)");
         
         //check Hashing
-        repo.createBlobGeneral("./test/");
+        repo.stage("./test/");
         boolean isInIndex = false;
         String hashCode;
         //finds compressed hashcode if nessesary
@@ -73,9 +74,65 @@ public class GitTester {
             System.out.println ("WARNING: Blob object creation unsuccessful");
 
         //leave true if you want repository to reset at end of test
+        if (true){
+            repo.deleteRepository();
+        }
+        commitTest();
         if (false){
             repo.deleteRepository();
         }
         
+    }
+    private static void commitTest() throws IOException {
+        Git repo = new Git();
+        repo.stage("./test/");
+        String commitHash = repo.commit("rizzlord", "word gng");
+        //checks if the commit file is created
+        File commitFile = new File("./git/objects/" + commitHash);
+        if (commitFile.exists()) {
+            System.out.println("Commit file creation successful");
+        } else {
+            System.out.println("WARNING: Commit file creation unsuccessful");
+        }
+        
+        //verifies the contents of the commit file
+        String commitFileText = new String(Files.readAllBytes(commitFile.toPath()));
+        if (commitFileText.contains("author: rizzlord") && commitFileText.contains("message: word gng")) {
+            System.out.println("Commit content correct");
+        } else {
+            System.out.println("WARNING: Commit content is incorrect");
+        }
+
+        //Tests second commit
+        //create new file
+        File newFile = new File("./newTestFile.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(newFile))) {
+            writer.write("skibidi skibidi on the wall who is the sigmaest of them all?");
+        }
+        repo.stage("./newTestFile.txt");
+        //second commit
+        String secondCommitHash = repo.commit("rizzlord", "second commit");
+        //verify second commit
+        File secondCommitFile = new File("./git/objects/" + secondCommitHash);
+        if (secondCommitFile.exists()) {
+            System.out.println("Second commit file creation successful");
+        } else {
+            System.out.println("WARNING: Second commit file creation unsuccessful");
+        }
+
+        //verify contents of second commit file
+        String secondCommitFileText = new String(Files.readAllBytes(secondCommitFile.toPath()));
+        if (secondCommitFileText.contains("author: rizzlord") && secondCommitFileText.contains("message: second commit")) {
+            System.out.println("Second commit content correct");
+        } else {
+            System.out.println("WARNING: Second commit content is incorrect");
+        }
+
+        //cleans up test file
+        if (newFile.delete()) {
+            System.out.println("Temporary test file deleted successfully");
+        } else {
+            System.out.println("WARNING: Failed to delete the temporary test file");
+        }
     }
 }
