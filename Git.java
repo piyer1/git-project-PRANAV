@@ -205,26 +205,34 @@ public class Git implements GitInterface{
                 e.printStackTrace();
             }
         }
-        else{
-            File[] allFiles = file.listFiles();
-            File file_combined = new File("./combined" + file.getName());
-            if (!allFiles.equals(null)){
-                for (File child : allFiles){
-                    try {
-                        //write to objects directory
-                        BufferedWriter output = new BufferedWriter(new FileWriter(file_combined));
-                        output.write(child.getName());
-                        output.newLine();
-                        output.close();
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
+        else if (file.isDirectory()) {
+            try {
+                File[] allFiles = file.listFiles();
+                if (allFiles == null) {
+                    return null;
+                }
+                List<String> hashes = new ArrayList<>();
+                for (File child : allFiles) {
+                    String childHash = Sha1Hash(child);
+                    if (childHash != null) {
+                        hashes.add(childHash);
                     }
                 }
+                Collections.sort(hashes);
+                MessageDigest digester = MessageDigest.getInstance("SHA-1");
+                for (String hash : hashes) {
+                    digester.update(hash.getBytes());
+                }
+                byte[] sha1bytes = digester.digest();
+                BigInteger sha1data = new BigInteger(1, sha1bytes);
+                String hash = sha1data.toString(16);
+                while (hash.length() < 40) {
+                    hash = "0" + hash;
+                }
+                return hash;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            String hash = Sha1Hash(file_combined);
-            boolean bool1 = file_combined.delete();
-            return (hash);
         }
         return null;
     }
@@ -296,7 +304,7 @@ public class Git implements GitInterface{
             if (!parent.equals("")) {
                 for (String line : Files.readAllLines(Paths.get("./git/objects/" + parent))) {
                     if (line.startsWith("tree:")) {
-                        parentFileTree = line.substring(line.indexOf(':')+2);
+                        parentFileTree = line.substring(6);
                     }
                 }
                 fileTree.addAll(0, Files.readAllLines(Paths.get("./git/objects/" + parentFileTree)));
@@ -386,6 +394,66 @@ public class Git implements GitInterface{
     
 
     public void checkout(String commitHash) {
-        
+        //clear workingRepo
+        File workingRepo = new File("./workingRepo/");
+        if (workingRepo.exists()) {
+            removeDirectory(workingRepo);
+        }
+        workingRepo.mkdir();
+        //Finds commit file
+        File commitFile = new File("./git/objects/" + commitHash);
+        if (!commitFile.exists()) {
+            System.out.println("WARNING: Commit " + commitHash + " does not exist.");
+            return;
+        }
+        //finds the tree hash
+        String treeHash = null;
+        try (BufferedReader reader = new BufferedReader(new FileReader(commitFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("tree: ")) {
+                    treeHash = line.substring(6);
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        //finds tree file and restores the files into workingRepo
+        File treeFile = new File("./git/objects/" + treeHash);
+        try (BufferedReader treeReader = new BufferedReader(new FileReader(treeFile))) {
+            String line;
+            while ((line = treeReader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                String type = parts[0];
+                String fileHash = parts[1];
+                String path = parts[2];
+                File objectFile = new File("./git/objects/" + fileHash);
+                File recreatePath = new File(path);
+                if (type.equals("blob")) {
+                    remakeBlob(objectFile, recreatePath);
+                } else {
+                    if (!recreatePath.exists()) {
+                        recreatePath.mkdirs();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    //halpar method
+    private void remakeBlob(File source, File destination) {
+        try {
+            File parentDir = destination.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            Files.copy(source.toPath(), destination.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

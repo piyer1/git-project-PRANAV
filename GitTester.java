@@ -3,12 +3,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.io.*;
 
-
 public class GitTester {
     public static void main (String [] args) throws IOException{
         //initialize repository
         Git repo = new Git();
-        File test = new File("./test/");
+        File test = new File("./workingRepo/test/");
 
         //check repository initialization
         File git = new File ("./git/");
@@ -32,14 +31,8 @@ public class GitTester {
         else
             System.out.println ("WARNING: head creation failure");
         
-        //check Sha1Hash
-        if (repo.Sha1Hash(test).equals("9054fbe0b622c638224d50d20824d2ff6782e308"))
-            System.out.println ("Sha1Hash functioning properly");
-        else
-            System.out.println ("WARNING: Sha1Hash method not functioning properly (or you changed testData.txt)");
-        
         //check Hashing
-        repo.stage("./test/");
+        repo.stage("./workingRepo/test/");
         boolean isInIndex = false;
         String hashCode;
         //finds compressed hashcode if nessesary
@@ -78,14 +71,14 @@ public class GitTester {
             repo.deleteRepository();
         }
         commitTest();
-        if (false){
+        if (true){
             repo.deleteRepository();
         }
         
     }
     private static void commitTest() throws IOException {
         Git repo = new Git();
-        repo.stage("./test/");
+        repo.stage("./workingRepo/test/");
         String commitHash = repo.commit("rizzlord", "word gng");
         //checks if the commit file is created
         File commitFile = new File("./git/objects/" + commitHash);
@@ -105,11 +98,11 @@ public class GitTester {
 
         //Tests second commit
         //create new file
-        File newFile = new File("./newTestFile.txt");
+        File newFile = new File("./workingRepo/newTestFile.txt");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(newFile))) {
             writer.write("skibidi skibidi on the wall who is the sigmaest of them all?");
         }
-        repo.stage("./newTestFile.txt");
+        repo.stage("./workingRepo/newTestFile.txt");
         //second commit
         String secondCommitHash = repo.commit("rizzlord", "second commit");
         //verify second commit
@@ -128,11 +121,19 @@ public class GitTester {
             System.out.println("WARNING: Second commit content is incorrect");
         }
 
-        //cleans up test file
-        if (newFile.delete()) {
-            System.out.println("Temporary test file deleted successfully");
+        
+
+        //tests checkout
+        repo.checkout(commitHash);
+        if ((new File("./workingRepo/test/")).exists()) {
+            System.out.println("Second commit file creation successful");
         } else {
-            System.out.println("WARNING: Failed to delete the temporary test file");
+            System.out.println("WARNING: Second commit file creation unsuccessful");
+        }
+        if(!newFile.exists()) {
+            System.out.println("New file deleted correctly");
+        } else {
+            System.out.println("WARNING: new file deleted incorrectly");
         }
     }
 }
