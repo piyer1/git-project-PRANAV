@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -110,26 +111,29 @@ public class Git implements GitInterface{
                     destination.close();
                 }
             }
-            
-            // write to index
-            try{
-                //Checks if filename and hash is already in index
-                boolean isInIndex = false;
-                String index = ("tree " + hashCode + " " + file.getPath());
-                BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
-                while (reader.ready()){
-                    if (index.equals(reader.readLine()))
-                        isInIndex = true;
-                }
-                reader.close();
-                if (!isInIndex){
-                    BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true));
-                    writer.write(index);
-                    writer.newLine();
-                    writer.close();
+
+            //checks if entry exists already and deletes if so
+            List<String> indexLines = new ArrayList<>();
+            File indexFile = new File("./git/index");
+            try (BufferedReader reader = new BufferedReader(new FileReader(indexFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split(" ");
+                    if (!parts[2].equals(file.getPath())) {
+                        indexLines.add(line);
+                    }
                 }
             }
-            catch (IOException e){
+            
+            //write to index
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile))) {
+                for (String indexLine : indexLines) {
+                    writer.write(indexLine);
+                    writer.newLine();
+                }
+                writer.write("tree " + hashCode + " " + file.getPath());
+                writer.newLine();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -137,7 +141,7 @@ public class Git implements GitInterface{
 
     //string filePath is path of blob to be hashed
     //returns true if blob hashes, returns false otherwise
-    public void HashFile (File file, String filename){
+    public void HashFile (File file, String filename) throws FileNotFoundException, IOException{
         //compresses the file
         if (COMPRESS_FILES)
             file = compress(file);
@@ -163,25 +167,27 @@ public class Git implements GitInterface{
             }
         }
 
-        // write to index
-        try{
-            //Checks if filename and hash is already in index
-            boolean isInIndex = false;
-            String index = ("blob " + hashCode + " " + file.getPath());
-            BufferedReader reader = new BufferedReader(new FileReader("./git/index"));
-            while (reader.ready()){
-                if (index.equals(reader.readLine()))
-                    isInIndex = true;
-            }
-            reader.close();
-            if (!isInIndex){
-                BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true));
-                writer.write(index);
-                writer.newLine();
-                writer.close();
+        //checks if entry exists already and deletes if so
+        List<String> indexLines = new ArrayList<>();
+        File indexFile = new File("./git/index");
+        try (BufferedReader reader = new BufferedReader(new FileReader(indexFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.contains(file.getPath())) {
+                    indexLines.add(line);
+                }
             }
         }
-        catch (IOException e){
+
+        // write to index
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile))) {
+            for (String indexLine : indexLines) {
+                writer.write(indexLine);
+                writer.newLine();
+            }
+            writer.write("blob " + hashCode + " " + file.getPath());
+            writer.newLine();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

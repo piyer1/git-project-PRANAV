@@ -66,12 +66,22 @@ public class GitTester {
         else
             System.out.println ("WARNING: Blob object creation unsuccessful");
 
+        //tests editing files:
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File("./workingRepo/test/file.txt")))) {
+            writer.write("ummmmmmmm what the sigma");
+        }
+        repo.stage("./workingRepo/test/");
+        //changes the file back to its original state:
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File("./workingRepo/test/file.txt")))) {
+            writer.write("ummmm what the sigmaejnrjpeorjweopi");
+        }
+
         //leave true if you want repository to reset at end of test
-        if (true){
+        if (false){
             repo.deleteRepository();
         }
-        commitTest();
-        if (true){
+        //commitTest();
+        if (false){
             repo.deleteRepository();
         }
         
